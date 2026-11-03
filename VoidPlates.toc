@@ -2,9 +2,10 @@
 ## Title: VoidPlates
 ## Notes: Clean, readable enemy nameplates for Midnight: see who's casting, what to kick and who it's aimed at.
 ## Author: VoidUI
-## Version: 1.0.0
+## Version: 1.0.1
 ## SavedVariables: VoidPlatesDB
 ## IconTexture: Interface\Icons\Spell_Shadow_Shadowform
 
+CharSettings.lua
 Core.lua
 Plates.lua

@@ -36,6 +36,14 @@ VP.DEFAULTS = {
     smallMinions     = true,  -- pets, totems, guardians and minor mobs get a small plate
 }
 
+-- Every setting above is per character (CharSettings.lua); saved profiles stay
+-- account-wide so any character can load them.
+do
+    local keys = {}
+    for k in pairs(VP.DEFAULTS) do keys[#keys + 1] = k end
+    VP.CharSettings.Register(ADDON, "VoidPlatesDB", keys)
+end
+
 VP.COLOR = {
     hostile   = CreateColor(0.80, 0.18, 0.18),
     neutral   = CreateColor(0.90, 0.75, 0.15),

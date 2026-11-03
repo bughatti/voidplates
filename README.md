@@ -59,6 +59,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 
 ## Good to Know
 
+- **Settings are per character.** Each character keeps its own VoidPlates settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. If you also run a Void addon with the hub icon by your minimap (VoidBags, VoidAH, VoidGather, ...), right-click it and pick **Copy settings from...** to take another character's settings. Saved profiles stay shared, so any character can load them.
 - **Enemy plates only.** Your personal resource bar and friendly plates stay Blizzard's.
 - **Midnight keeps some combat details hidden from addons** (enemy spell details, some health and threat values inside instances). VoidPlates hands those straight to the display, so everything above works in Mythic+ and raids, but it can't build lists of specific spells or show what a mob is targeting.
 - **The clickable area** is one setting for all plates (the game doesn't let addons size it per plate), and it only changes out of combat.
