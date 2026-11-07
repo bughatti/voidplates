@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2] — 2026-11-06
+
+### Fixed
+- **Enemy player plates could error** when another addon changes the game's class colors; VoidPlates now uses its own copy of the color.
+
+### Added
+- **WoW Forever** support.
+
 ## [1.0.1] — 2026-11-02
 
 ### Changed

@@ -69,6 +69,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 ## Compatibility
 
 - **WoW 12.1.5** (Midnight Season 2)
+- **WoW Forever** supported too
 - Standalone — nothing else to install
 - Matches the look of the other Void addons
 
