@@ -346,19 +346,18 @@ local function BaseColor(unit)
         if not sec(class) and class and yes(UnitCanAttack("player", unit)) then
             local cc = RAID_CLASS_COLORS[class]
             if cc then
-                -- other addons can swap RAID_CLASS_COLORS for plain {r,g,b} tables, which
-                -- SetVertexColorFromBoolean rejects (bad argument #3, 2026-11-06): always
-                -- hand back a real color object
-                if not cc.GetRGBA then
-                    VP._classColors = VP._classColors or {}
-                    local c = VP._classColors[class]
-                    if not c or c.r ~= cc.r or c.g ~= cc.g or c.b ~= cc.b then
-                        c = CreateColor(cc.r or 1, cc.g or 1, cc.b or 1)
-                        VP._classColors[class] = c
-                    end
-                    cc = c
+                -- Always our own complete copy: SetVertexColorFromBoolean rejects a color
+                -- without alpha ("bad argument #3"), and other addons swap RAID_CLASS_COLORS
+                -- entries for plain {r,g,b} tables (2026-11-06) or for color objects with no
+                -- `a` (measured 2026-11-07 in Forever: GetRGBA present, a = nil, 39x in BFD).
+                VP._classColors = VP._classColors or {}
+                local c = VP._classColors[class]
+                local r, g, b = tonumber(cc.r) or 1, tonumber(cc.g) or 1, tonumber(cc.b) or 1
+                if not c or c.r ~= r or c.g ~= g or c.b ~= b then
+                    c = CreateColor(r, g, b, 1)
+                    VP._classColors[class] = c
                 end
-                return cc
+                return c
             end
         end
     end

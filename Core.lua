@@ -285,6 +285,7 @@ f:SetScript("OnEvent", function(self, _, name)
     if name ~= ADDON then return end
     self:UnregisterEvent("ADDON_LOADED")
     VoidPlatesDB = VoidPlatesDB or {}
+    VoidPlatesDB.colorProbe = nil   -- the 2026-11-07 class-color probe's data
     BuildOptions()
     if VP.Init then VP:Init() end
 end)

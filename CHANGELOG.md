@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.3] — 2026-11-07
+
+### Fixed
+- **Enemy player plates in groups could still error** ("bad argument #3 to SetVertexColorFromBoolean"), seen in dungeons. Some addons replace the game's class colors with colors that have no opacity value. VoidPlates now always uses its own complete copy of each class color.
+
 ## [1.0.2] — 2026-11-06
 
 ### Fixed
