@@ -34,7 +34,7 @@ VP.DEFAULTS = {
     castTargetName   = true,  -- who the cast is aimed at, right side of the cast bar
     castAtYou        = true,  -- white frame round the cast bar when it's aimed at you
     smallMinions     = true,  -- pets, totems, guardians and minor mobs get a small plate
-    friendlyNameOnly = true,  -- friendly NPCs: name only, set lower (keeps quest ! and ? clear)
+    friendlyLower    = true,  -- friendly NPCs: plate set lower (keeps quest ! and ? clear)
 }
 
 -- Every setting above is per character (CharSettings.lua); saved profiles stay
@@ -218,7 +218,7 @@ local function BuildOptions()
     Check("showLevel", "Show level", "The mob's level, top-left of the plate (?? for bosses), colored by difficulty.")
     Check("showClassification", "Show elite and rare icon", "Gold dragon for elites and bosses, silver for rare elites, a star for rares.")
     Check("showEnemyBuffs", "Show enemy buffs", "Any buff Blizzard shows on nameplates (shields, enrages, empowers), after your debuffs.")
-    Check("friendlyNameOnly", "Friendly NPCs: name only", "Quest givers, vendors and guards show just their name, set lower, so the quest ! and ? above their heads stay clear. Off: the full plate with a health bar.")
+    Check("friendlyLower", "Friendly NPCs: plate lower", "Quest givers, vendors and guards get their plate a little lower, so the quest ! and ? above their heads stay clear. Off: the plate sits where Blizzard puts it.")
     Check("smallMinions","Small plates for minions and minor mobs", "Pets, totems, guardians and minor mobs get a smaller plate with only their name on target and CC shown. Casts still show.")
 
     -- Blizzard's own plate settings that set the clickable area and stacking

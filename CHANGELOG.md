@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.5] — 2026-11-08
+
+### Changed
+- **Friendly NPCs have their full plate back, set lower.** 1.0.4 showed only their name, which looked like the plates were gone. Now quest givers, vendors and guards keep the health bar and name, moved down a plate's height, so the quest ! and ? above their heads stay visible. Turn it off under "Friendly NPCs: plate lower" (`/vplates`).
+
 ## [1.0.4] — 2026-11-08
 
 ### Changed
