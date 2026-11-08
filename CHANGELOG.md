@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.4] — 2026-11-08
+
+### Changed
+- **Friendly NPCs show just their name, set lower.** Quest givers, vendors and guards had the full plate with a health bar, and it covered the quest ! and ? above their heads. Turn it off under "Friendly NPCs: name only" in the options (`/vplates`) to get the full plate back. Enemies and players are unchanged.
+
 ## [1.0.3] — 2026-11-07
 
 ### Fixed

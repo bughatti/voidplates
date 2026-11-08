@@ -236,6 +236,22 @@ local function ApplyLayout(f)
     f.arrowR:SetPoint("LEFT", f.hp, "RIGHT", 3, 0)
     f.castIconW = h + ch + 2   -- PlaceLeftArrow steps out by this while a cast shows
     f.PlaceLeftArrow(f)
+    -- Friendly NPCs (quest givers, vendors, guards): name only, set lower. The full
+    -- plate sat right where the game floats a quest giver's ! and ? (the user,
+    -- 2026-11-08: "our nameplates cover a lot of the turn in and accept quest icons").
+    local no = f.nameOnly
+    f.hp.bg:SetShown(not no)
+    f.hpTex:SetAlpha(no and 0 or 1)
+    f.hp.edge:SetShown(not no)
+    if no then f.pct:Hide(); f.pctSign:Hide(); f.hpNum:Hide() end
+    f.name:ClearAllPoints()
+    if no then
+        f.name:SetPoint("TOP", f.hp, "BOTTOM", 0, -2)
+        f.name:SetTextColor(C.friendly.r, C.friendly.g, C.friendly.b)
+    else
+        f.name:SetPoint("BOTTOM", f.hp, "TOP", 0, 2)
+        f.name:SetTextColor(1, 1, 1)
+    end
     for i, a in ipairs(f.auras) do
         a:SetSize(as, as)
         a:ClearAllPoints()
@@ -279,14 +295,14 @@ local CLASS_ATLAS = {
 local function UpdateClassification(f)
     local unit = f.unit
     local atlas
-    if VP:Get("showClassification") and not f.minor and not yes(UnitIsPlayer(unit)) then
+    if VP:Get("showClassification") and not f.minor and not f.nameOnly and not yes(UnitIsPlayer(unit)) then
         local cls = UnitClassification(unit)
         if not sec(cls) then atlas = CLASS_ATLAS[cls] end
     end
     if atlas then f.class:SetAtlas(atlas); f.class:Show() else f.class:Hide() end
 
     local text = ""
-    if VP:Get("showLevel") and not f.minor then
+    if VP:Get("showLevel") and not f.minor and not f.nameOnly then
         local lvl = UnitLevel(unit)
         if not sec(lvl) and lvl then
             if lvl < 0 then
@@ -316,6 +332,7 @@ end
 local function UpdateHealth(f)
     f.hp:SetMinMaxValues(0, UnitHealthMax(f.unit))
     f.hp:SetValue(UnitHealth(f.unit))
+    if f.nameOnly then return end   -- friendly NPC: name only, no health text
     if VP:Get("showHealthNumber") and not f.minor and AbbreviateNumbers then
         local ok, s = pcall(AbbreviateNumbers, UnitHealth(f.unit))
         f.hpNum:SetText(ok and s or "")
@@ -401,7 +418,7 @@ local function UpdateSelection(f)
     local isTarget = IsTarget(f)
     if f.minor then f.name:SetShown(isTarget) end
     local isFocus = plate and plate == C_NamePlate.GetNamePlateForUnit("focus")
-    if not VP:Get("targetOutline") then
+    if not VP:Get("targetOutline") or f.nameOnly then
         f.sel:SetShown(false)
     elseif isTarget then
         f.sel:SetColor(C.target); f.sel:SetShown(true)
@@ -410,7 +427,7 @@ local function UpdateSelection(f)
     else
         f.sel:SetShown(false)
     end
-    local arrows = isTarget and VP:Get("targetArrows") and true or false
+    local arrows = isTarget and VP:Get("targetArrows") and not f.nameOnly and true or false
     f.arrowL:SetShown(arrows); f.arrowR:SetShown(arrows)
     local fade = UnitExists("target") and not isTarget
     f:SetAlpha(fade and VP:Get("nonTargetAlpha") or 1)
@@ -639,10 +656,23 @@ local function FullUpdate(f)
     UpdateRaidMark(f); UpdateCast(f); UpdateAuras(f); UpdateClassification(f)
 end
 
+-- Friendly NPC: the game says it's friendly (UnitIsFriend, as Blizzard's plates
+-- decide it), you can't attack it, and it isn't a player -> name-only plate. Anything
+-- the game hides counts as "not friendly", so an enemy never loses its bar (a hostile
+-- mob that is briefly unattackable is not UnitIsFriend). Codex Sol, 2026-11-08.
+local function IsNameOnly(unit)
+    if not VP:Get("friendlyNameOnly") then return false end
+    local friend, canAttack, isPlayer = UnitIsFriend("player", unit), UnitCanAttack("player", unit), UnitIsPlayer(unit)
+    if sec(friend) or sec(canAttack) or sec(isPlayer) then return false end
+    return friend and not canAttack and not isPlayer and true or false
+end
+
 -- Pets, totems, guardians (UnitIsMinion) and minor mobs (classification "minus"),
--- the same two groups Blizzard draws smaller.
+-- the same two groups Blizzard draws smaller. A name-only (friendly NPC) plate is
+-- never minor: minor plates hide the name off-target, which would leave nothing.
 local function IsMinor(unit)
     if not VP:Get("smallMinions") then return false end
+    if IsNameOnly(unit) then return false end
     if UnitIsMinion and yes(UnitIsMinion(unit)) then return true end
     local cls = UnitClassification(unit)
     return not sec(cls) and cls == "minus"
@@ -689,6 +719,7 @@ local function OnAdded(unit)
     local f = table.remove(pool) or CreatePlate()
     f.unit, f.plate = unit, plate
     f.minor = IsMinor(unit)
+    f.nameOnly = IsNameOnly(unit)
     f:SetParent(plate)
     f:ClearAllPoints()
     f:SetPoint("CENTER", plate, "CENTER", 0, 0)
@@ -717,6 +748,7 @@ function VP:RefreshAll(relayout)
     for _, f in pairs(plates) do
         if relayout then
             f.minor = IsMinor(f.unit)   -- the "small minions" option may have changed
+            f.nameOnly = IsNameOnly(f.unit)
             ApplyLayout(f)
         end
         FullUpdate(f)
@@ -726,6 +758,17 @@ end
 ----------------------------------------------------------------------
 -- Events
 ----------------------------------------------------------------------
+-- Turned hostile / attackable (or friendly): bar back on (or off). True = re-laid out.
+local function RecheckNameOnly(f)
+    local no = IsNameOnly(f.unit)
+    if no == f.nameOnly then return false end
+    f.nameOnly = no
+    f.minor = IsMinor(f.unit)
+    ApplyLayout(f)
+    FullUpdate(f)
+    return true
+end
+
 local UNIT_HANDLERS = {
     UNIT_HEALTH                  = UpdateHealth,
     UNIT_MAXHEALTH               = UpdateHealth,
@@ -752,8 +795,12 @@ local UNIT_HANDLERS = {
         end)
     end,
     -- faction can flip (mind control): color AND which auras apply
-    UNIT_FACTION                 = function(f) UpdateColor(f); UpdateAuras(f) end,
-    UNIT_FLAGS                   = UpdateColor,
+    UNIT_FACTION                 = function(f)
+        if not RecheckNameOnly(f) then UpdateColor(f); UpdateAuras(f) end
+    end,
+    UNIT_FLAGS                   = function(f)
+        if not RecheckNameOnly(f) then UpdateColor(f) end
+    end,
     UNIT_THREAT_LIST_UPDATE      = UpdateColor,
     UNIT_THREAT_SITUATION_UPDATE = UpdateColor,
     UNIT_SPELLCAST_START             = UpdateCast,
