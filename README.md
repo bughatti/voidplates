@@ -1,6 +1,8 @@
 # VoidPlates
 
-**Clean, readable enemy nameplates for Midnight: see who's casting, what to kick and who it's aimed at.**
+**Works on:** WoW Midnight · WoW Forever
+
+**Clean, readable enemy nameplates: see who's casting, what to kick and who it's aimed at.**
 
 VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates built for Midnight's rules. Every cast shows whether you can kick it and who it targets, the plate flashes when a kickable cast starts and turns red past halfway, and your own debuffs, crowd control and enemy buffs sit right above the bar. It works the same in the open world, dungeons, Mythic+ and raids.
 
@@ -51,7 +53,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 
 ## Getting Started
 
-1. Install with the CurseForge app, or copy the `VoidPlates` folder into `World of Warcraft/_retail_/Interface/AddOns/`.
+1. Install with the CurseForge app, or copy the `VoidPlates` folder into `World of Warcraft/_retail_/Interface/AddOns/` (WoW Forever: `_forever_/Interface/AddOns/`).
 2. Restart WoW or `/reload`.
 3. Enemy nameplates switch to VoidPlates straight away. Type `/vplates` (or Esc → Options → AddOns → VoidPlates) to adjust them.
 
@@ -68,8 +70,8 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 
 ## Compatibility
 
-- **WoW 12.1.5** (Midnight Season 2)
-- **WoW Forever** supported too
+- **WoW Midnight** 12.1.5 (Season 2)
+- **WoW Forever**
 - Standalone — nothing else to install
 - Matches the look of the other Void addons
 
