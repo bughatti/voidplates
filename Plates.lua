@@ -338,7 +338,33 @@ local function UpdateHealth(f)
     end
 end
 
+-- WoW Forever: the spec API is a placeholder there (every character reports spec 1) and
+-- the global GetSpecializationRole doesn't exist, so a Forever tank was never TANK and its
+-- correctly held mobs showed the "bad" threat color. There the role comes from the group
+-- role, else from a tank stance / form / aura. Retail keeps the spec path below.
+-- (Forever audit, 2026-11-10)
+local IS_FOREVER = (select(4, GetBuildInfo()) or 0) < 100000
+local FOREVER_TANK_FORMS = { ["Defensive Stance"] = true, ["Bear Form"] = true, ["Dire Bear Form"] = true }
+local function ForeverIsTank()
+    local r = UnitGroupRolesAssigned and UnitGroupRolesAssigned("player")
+    if r and r ~= "NONE" then return r == "TANK" end
+    local _, class = UnitClass("player")
+    if class == "WARRIOR" or class == "DRUID" then
+        local idx = GetShapeshiftForm and GetShapeshiftForm()
+        if idx and idx > 0 then
+            local _, _, _, sid = GetShapeshiftFormInfo(idx)
+            local nm = sid and C_Spell.GetSpellName(sid)
+            return nm ~= nil and FOREVER_TANK_FORMS[nm] == true
+        end
+    elseif class == "PALADIN" and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName then
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", "Righteous Fury", "HELPFUL")
+        return ok and aura ~= nil
+    end
+    return false
+end
+
 local function IsTankRole()
+    if IS_FOREVER then return ForeverIsTank() end   -- (Forever audit, 2026-11-10)
     local getSpec = (C_SpecializationInfo and C_SpecializationInfo.GetSpecialization) or GetSpecialization
     local spec = getSpec and getSpec()
     return spec and GetSpecializationRole(spec) == "TANK"

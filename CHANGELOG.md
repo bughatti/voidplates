@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.6] — 2026-11-10
+
+### Fixed (WoW Forever)
+- **Tank threat colours:** a Forever tank (group role, Defensive Stance, Bear Form or Righteous Fury) gets the tank colours.
+
 ## [1.0.5] — 2026-11-08
 
 ### Changed
