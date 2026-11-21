@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.7] — 2026-11-21
+
+- **Fixed on WoW Forever: per-character settings.** The game stopped telling addons your realm's name, so your character's own settings were no longer loaded or saved. They are again, from where they were saved before.
+
 ## [1.0.6] — 2026-11-10
 
 ### Fixed (WoW Forever)

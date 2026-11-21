@@ -1,4 +1,4 @@
-# VoidPlates
+# VoidPlates - Nameplates, Cast Bars & Interrupts
 
 **Works on:** WoW Midnight · WoW Forever
 
@@ -77,4 +77,4 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 
 ---
 
-*Part of the Void addon family by Vede · MIT licensed · [Source & bug reports](https://github.com/bughatti/voidplates) · [All Void addons](https://www.curseforge.com/members/bughatti/projects) · free M+ & raid player lookups at [voidscout.io](https://voidscout.io) · more at [tinkerline.io](https://tinkerline.io) · [Discord](https://discord.gg/7ZHmx7zMDh)*
+*Part of the Void addon family by Vede · MIT licensed · [Source & bug reports](https://github.com/bughatti/voidplates) · [All Void addons](https://www.curseforge.com/members/bughatti/projects) · free M+ & raid player lookups at [voidscout.io](https://voidscout.io) · more at [tinkerline.io](https://tinkerline.io/addons/voidplates/) · [Discord](https://discord.gg/7ZHmx7zMDh)*
