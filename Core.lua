@@ -35,6 +35,12 @@ VP.DEFAULTS = {
     castAtYou        = true,  -- white frame round the cast bar when it's aimed at you
     smallMinions     = true,  -- pets, totems, guardians and minor mobs get a small plate
     friendlyLower    = true,  -- friendly NPCs: plate set lower (keeps quest ! and ? clear)
+    -- 2026-11-25, a CurseForge comment: "Why we cant custom any colors etc? Levels is also bit hard to see sometimes and
+    -- could be pretty nice to change party colors too, to show class on plate"
+    classColorsFriendly = true,   -- friendly players (your party, others) in their class color, not plain green
+    levelBold        = true,      -- level as big as the name, thick outline + shadow (was 2 smaller, thin outline)
+    levelWhite       = false,     -- level in white instead of the difficulty color
+    customColors     = false,     -- { [key] = { r, g, b } }: your own colors (false = all default)
 }
 
 -- Every setting above is per character (CharSettings.lua); saved profiles stay
@@ -64,6 +70,66 @@ VP.COLOR = {
     castAtYou = CreateColor(1.00, 1.00, 1.00),   -- frame round a cast aimed at you
     enemyBuff = CreateColor(0.45, 0.45, 0.52),   -- border of a plain enemy buff
 }
+
+-- Colors you can change (Options > Colors). Only the ones read live while drawing: the flash, target, focus and border
+-- colors are built into each plate once, so they stay as they are. VP.COLOR stays the SAME table (Plates.lua keeps a
+-- reference to it); its entries are swapped.
+VP.COLOR_KEYS = {
+    { "hostile", "Hostile" }, { "neutral", "Neutral" }, { "friendly", "Friendly" }, { "tapped", "Tapped (someone else's)" },
+    { "caster", "Caster mob" }, { "miniboss", "Mini-boss" }, { "boss", "Boss" }, { "threatBad", "Threat: lost / pulled" },
+    { "kick", "Cast you can kick" }, { "noKick", "Cast you can't kick" },
+}
+VP.DEFAULT_COLOR = {}
+for k, c in pairs(VP.COLOR) do VP.DEFAULT_COLOR[k] = c end
+function VP:ApplyColors()
+    local custom = self:Get("customColors")
+    for _, kv in ipairs(self.COLOR_KEYS) do
+        local k = kv[1]
+        local c = type(custom) == "table" and custom[k]
+        if type(c) == "table" and tonumber(c[1]) and tonumber(c[2]) and tonumber(c[3]) then
+            self.COLOR[k] = CreateColor(c[1], c[2], c[3], 1)   -- with alpha: SetVertexColorFromBoolean needs it
+        else
+            self.COLOR[k] = self.DEFAULT_COLOR[k]
+        end
+    end
+end
+function VP:SetColor(k, r, g, b)
+    local custom = self:Get("customColors")
+    custom = type(custom) == "table" and custom or {}
+    custom[k] = (r and { r, g, b }) or nil
+    self:Set("customColors", next(custom) and custom or false)
+    self:ApplyColors()
+    if self.RefreshAll then self:RefreshAll(true) end
+    self:RefreshColorRows()
+end
+-- "[swatch]  Change" for the options rows
+function VP:SwatchText(k)
+    local c = self.COLOR[k]
+    if not c then return "Change" end
+    return string.format("|TInterface\\Buttons\\WHITE8X8:10:22:0:0:8:8:0:8:0:8:%d:%d:%d|t  Change",
+        math.floor(c.r * 255 + 0.5), math.floor(c.g * 255 + 0.5), math.floor(c.b * 255 + 0.5))
+end
+-- the rows on screen show the new color at once (the list only asks again when it redraws)
+function VP:RefreshColorRows()
+    local list = SettingsPanel and SettingsPanel:IsShown() and SettingsPanel.GetSettingsList and SettingsPanel:GetSettingsList()
+    local box = list and list.ScrollBox
+    if not (box and box.ForEachFrame) then return end
+    box:ForEachFrame(function(fr)
+        if fr.data and fr.data.vpColor and fr.Button and fr.EvaluateName then fr.Button:SetText(fr:EvaluateName()) end
+    end)
+end
+-- Blizzard's color picker (the same call on retail and WoW Forever)
+function VP:PickColor(k, label)
+    local cur = self.COLOR[k]
+    local r0, g0, b0 = cur.r, cur.g, cur.b
+    local function apply() local r, g, b = ColorPickerFrame:GetColorRGB(); VP:SetColor(k, r, g, b) end
+    ColorPickerFrame:SetupColorPickerAndShow({
+        r = r0, g = g0, b = b0, hasOpacity = false,
+        swatchFunc = apply,
+        cancelFunc = function() VP:SetColor(k, r0, g0, b0) end,
+    })
+    if ColorPickerFrame.Header and ColorPickerFrame.Header.Text then ColorPickerFrame.Header.Text:SetText(label) end
+end
 
 VP.TEX  = "Interface\\Buttons\\WHITE8X8"
 VP.BAR  = "Interface\\TargetingFrame\\UI-StatusBar"
@@ -220,6 +286,34 @@ local function BuildOptions()
     Check("showEnemyBuffs", "Show enemy buffs", "Any buff Blizzard shows on nameplates (shields, enrages, empowers), after your debuffs.")
     Check("friendlyLower", "Friendly NPCs: plate lower", "Quest givers, vendors and guards get their plate a little lower, so the quest ! and ? above their heads stay clear. Off: the plate sits where Blizzard puts it.")
     Check("smallMinions","Small plates for minions and minor mobs", "Pets, totems, guardians and minor mobs get a smaller plate with only their name on target and CC shown. Casts still show.")
+    Check("classColorsFriendly", "Class colors on friendly players", "Your party and other friendly players in their class color instead of plain green. (Inside dungeons and raids the game keeps friendly plates for itself: there it's Blizzard's own class color setting.)")
+    Check("levelBold", "Bigger, bolder level", "The level as big as the name, with a thick outline and a shadow, so it reads on any background.")
+    Check("levelWhite", "Level in white", "White instead of the difficulty color (grey, green, yellow, orange, red), easier to see on some ground.")
+
+    -- your own colors (2026-11-25, a CurseForge comment: "Why we cant custom any colors etc?")
+    if CreateSettingsListSectionHeaderInitializer then
+        layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Colors"))
+    end
+    -- each button shows the color it holds now (retail 11-25: a row of plain "Change" buttons told you nothing).
+    -- The button text is a function the list asks again each time it draws the row; where the client's settings list
+    -- can't do that, plain "Change".
+    local live = SettingsButtonControlMixin and SettingsButtonControlMixin.EvaluateName and CreateSettingsButtonInitializer
+    for _, kv in ipairs(VP.COLOR_KEYS) do
+        local k, label = kv[1], kv[2]
+        local tip = "Pick your own color. Cancel in the picker puts the old one back."
+        if live then
+            local init = CreateSettingsButtonInitializer(label .. " color", function() return VP:SwatchText(k) end,
+                function() VP:PickColor(k, label) end, tip, false)
+            init:AddSearchTags(label .. " color")
+            init.data.vpColor = true
+            layout:AddInitializer(init)
+        else
+            Button(label .. " color", "Change", function() VP:PickColor(k, label) end, tip)
+        end
+    end
+    Button("All colors back to default", "Reset colors", function()
+        VP:Set("customColors", false); VP:ApplyColors(); VP:RefreshAll(true); VP:RefreshColorRows()
+    end)
 
     -- Blizzard's own plate settings that set the clickable area and stacking
     do
@@ -288,6 +382,7 @@ f:SetScript("OnEvent", function(self, _, name)
     self:UnregisterEvent("ADDON_LOADED")
     VoidPlatesDB = VoidPlatesDB or {}
     VoidPlatesDB.colorProbe = nil   -- the 2026-11-07 class-color probe's data
+    VP:ApplyColors()   -- your own colors (Options > Colors)
     BuildOptions()
     if VP.Init then VP:Init() end
 end)

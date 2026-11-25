@@ -20,7 +20,8 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 
 ### The mob at a glance
 - **Health** — percent on the right, optional short number (1.2M) on the left
-- **Level and elite / rare icon** next to the name, level colored by difficulty
+- **Level and elite / rare icon** next to the name: the level the mob fights at, as big as the name with a thick outline, colored by difficulty (or white, if you'd rather)
+- **Class colors on players** — enemy players always, friendly players (your party) too unless you turn it off
 - **Color by mob type** — casters, mini-bosses and bosses stand out before the pull
 - **Threat colors** — orange when a tank loses a mob, or when a non-tank pulls one
 - **Raid markers** on the plate
@@ -39,6 +40,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 ### Setup
 - **Profiles** — save, load and delete setups, or reset everything to defaults
 - **Plate size, cast bar height, name and aura size**, all adjustable
+- **Your own colors** — pick each plate color (hostile, neutral, friendly, tapped, caster, mini-boss, boss, threat, kickable and unkickable casts); each button shows the color it holds now, and one button puts them all back
 - **Clickable area and stacking** — Blizzard's own settings, right there in the panel
 
 ---
@@ -62,7 +64,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 ## Good to Know
 
 - **Settings are per character.** Each character keeps its own VoidPlates settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. If you also run a Void addon with the hub icon by your minimap (VoidBags, VoidAH, VoidGather, ...), right-click it and pick **Copy settings from...** to take another character's settings. Saved profiles stay shared, so any character can load them.
-- **Enemy plates only.** Your personal resource bar and friendly plates stay Blizzard's.
+- **Your personal resource bar stays Blizzard's**, and so do friendly plates inside dungeons and raids: the game keeps those for itself (Blizzard's own "class colors" setting covers them there).
 - **Midnight keeps some combat details hidden from addons** (enemy spell details, some health and threat values inside instances). VoidPlates hands those straight to the display, so everything above works in Mythic+ and raids, but it can't build lists of specific spells or show what a mob is targeting.
 - **The clickable area** is one setting for all plates (the game doesn't let addons size it per plate), and it only changes out of combat.
 

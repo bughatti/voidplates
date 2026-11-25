@@ -215,8 +215,12 @@ local function ApplyLayout(f)
     local showPct = VP:Get("showHealthPercent") and not f.minor
     f.pct:SetShown(showPct); f.pctSign:SetShown(showPct)
     f.hpNum:SetShown(VP:Get("showHealthNumber") and not f.minor)
-    local ls = math.max(8, VP:Get("nameSize") - 2)
-    f.level:SetFont(VP.FONT, ls, "OUTLINE")
+    -- level: as big as the name with a thick outline and a shadow (2026-11-25, "Levels is also bit hard to see")
+    local bold = VP:Get("levelBold")
+    local ls = bold and math.max(9, VP:Get("nameSize")) or math.max(8, VP:Get("nameSize") - 2)
+    f.level:SetFont(VP.FONT, ls, bold and "THICKOUTLINE" or "OUTLINE")
+    f.level:SetShadowColor(0, 0, 0, bold and 1 or 0)
+    f.level:SetShadowOffset(bold and 1 or 0, bold and -1 or 0)
     f.class:SetSize(ls + 4, ls + 4)
     f.name:SetWidth(w + 20)
     f.cast:SetSize(w, ch)
@@ -295,14 +299,16 @@ local function UpdateClassification(f)
 
     local text = ""
     if VP:Get("showLevel") and not f.minor then
-        local lvl = UnitLevel(unit)
+        -- the level it fights at (scaled zones, timewalking) when the game gives it
+        local lvl = UnitEffectiveLevel and UnitEffectiveLevel(unit)
+        if lvl == nil or sec(lvl) then lvl = UnitLevel(unit) end
         if not sec(lvl) and lvl then
             if lvl < 0 then
                 text = "??"
                 f.level:SetTextColor(1, 0.1, 0.1)
             else
                 text = tostring(lvl)
-                local c = GetCreatureDifficultyColor and GetCreatureDifficultyColor(lvl)
+                local c = not VP:Get("levelWhite") and GetCreatureDifficultyColor and GetCreatureDifficultyColor(lvl)
                 if c then f.level:SetTextColor(c.r, c.g, c.b) else f.level:SetTextColor(1, 1, 1) end
             end
         end
@@ -377,7 +383,8 @@ local function BaseColor(unit)
     local isPlayer = yes(UnitIsPlayer(unit))
     if isPlayer then
         local _, class = UnitClass(unit)
-        if not sec(class) and class and yes(UnitCanAttack("player", unit)) then
+        -- enemy players always; friendly ones (your party...) when "Class colors on friendly players" is on (2026-11-25)
+        if not sec(class) and class and (VP:Get("classColorsFriendly") or yes(UnitCanAttack("player", unit))) then
             local cc = RAID_CLASS_COLORS[class]
             if cc then
                 -- Always our own complete copy: SetVertexColorFromBoolean rejects a color

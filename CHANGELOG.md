@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] — 2026-11-25
+
+From your comments on CurseForge, thank you:
+- **Your own colors.** Options → Colors: pick each plate color (hostile, neutral, friendly, tapped, caster, mini-boss, boss, threat, kickable and unkickable casts). Each button shows the color it holds now; Cancel in the picker puts the old one back, and "Reset colors" puts them all back.
+- **Class colors on friendly players** (your party and other players), on by default. Inside dungeons and raids the game keeps friendly plates for itself, so there it's Blizzard's own class color setting.
+- **The level is easier to read:** as big as the name, with a thick outline and a shadow (on by default), optionally in white, and it's the level the mob fights at.
+
 ## [1.0.7] — 2026-11-21
 
 - **Fixed on WoW Forever: per-character settings.** The game stopped telling addons your realm's name, so your character's own settings were no longer loaded or saved. They are again, from where they were saved before.
