@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0] — 2026-11-26
+
+From your comments on CurseForge, thank you:
+- **Combo points on your target's plate.** Small round pips under the health bar, lit for each point you have (rogues, and druids in cat form). They show only while you have points, and step down below the cast bar while the mob casts, so a cast never covers them. Turn them off or change their color in Options → AddOns → VoidPlates.
+
 ## [1.1.0] — 2026-11-25
 
 From your comments on CurseForge, thank you:

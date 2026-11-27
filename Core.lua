@@ -40,6 +40,8 @@ VP.DEFAULTS = {
     classColorsFriendly = true,   -- friendly players (your party, others) in their class color, not plain green
     levelBold        = true,      -- level as big as the name, thick outline + shadow (was 2 smaller, thin outline)
     levelWhite       = false,     -- level in white instead of the difficulty color
+    -- 2026-11-26, the same commenter: "Actually combo points is missing too, if you can add them"
+    comboPoints      = true,      -- your combo points as round pips on your target's plate (rogues, cat-form druids)
     customColors     = false,     -- { [key] = { r, g, b } }: your own colors (false = all default)
 }
 
@@ -69,6 +71,7 @@ VP.COLOR = {
     focus     = CreateColor(0.35, 0.75, 1.00),
     castAtYou = CreateColor(1.00, 1.00, 1.00),   -- frame round a cast aimed at you
     enemyBuff = CreateColor(0.45, 0.45, 0.52),   -- border of a plain enemy buff
+    combo     = CreateColor(1.00, 0.82, 0.10),   -- a combo point you have (the empty ones stay dark)
 }
 
 -- Colors you can change (Options > Colors). Only the ones read live while drawing: the flash, target, focus and border
@@ -78,6 +81,7 @@ VP.COLOR_KEYS = {
     { "hostile", "Hostile" }, { "neutral", "Neutral" }, { "friendly", "Friendly" }, { "tapped", "Tapped (someone else's)" },
     { "caster", "Caster mob" }, { "miniboss", "Mini-boss" }, { "boss", "Boss" }, { "threatBad", "Threat: lost / pulled" },
     { "kick", "Cast you can kick" }, { "noKick", "Cast you can't kick" },
+    { "combo", "Combo points" },
 }
 VP.DEFAULT_COLOR = {}
 for k, c in pairs(VP.COLOR) do VP.DEFAULT_COLOR[k] = c end
@@ -289,6 +293,7 @@ local function BuildOptions()
     Check("classColorsFriendly", "Class colors on friendly players", "Your party and other friendly players in their class color instead of plain green. (Inside dungeons and raids the game keeps friendly plates for itself: there it's Blizzard's own class color setting.)")
     Check("levelBold", "Bigger, bolder level", "The level as big as the name, with a thick outline and a shadow, so it reads on any background.")
     Check("levelWhite", "Level in white", "White instead of the difficulty color (grey, green, yellow, orange, red), easier to see on some ground.")
+    Check("comboPoints", "Combo points on your target", "Your combo points as round pips under your target's plate (rogues, and druids in cat form). They show only while you have some.")
 
     -- your own colors (2026-11-25, a CurseForge comment: "Why we cant custom any colors etc?")
     if CreateSettingsListSectionHeaderInitializer then

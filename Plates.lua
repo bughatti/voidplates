@@ -20,6 +20,8 @@ local hooked = {}      -- Blizzard UnitFrame -> true once we've hooked its Show
 local suppressed = {}  -- Blizzard UnitFrame -> true while we own that plate
 
 local MAX_AURAS = 8
+local MAX_COMBO = 7   -- (5 on WoW Forever; a retail rogue can reach 7)
+local COMBO_POWER = Enum and Enum.PowerType and Enum.PowerType.ComboPoints or 4
 
 local function sec(v) return issecretvalue and issecretvalue(v) end
 -- A boolean we may branch on: false when the game hid it.
@@ -180,6 +182,32 @@ local function CreatePlate()
     holder:Hide()
     f.flash, f.flashAnim, f.flashEdge, f.flashGlow = holder, ag, pulse.edge, glow
 
+    -- Combo points (2026-11-26, a CurseForge comment: "Actually combo points is missing too"): small round pips right
+    -- under your target's health bar (the user: "needs to be smaller and up more closer to the plate"); while the mob
+    -- casts they step down below the cast bar, so a cast never covers them. Shown only while you have some.
+    local cp = CreateFrame("Frame", nil, f)
+    local function placeCombo()
+        cp:ClearAllPoints()
+        -- (under the cast bar: below the kick flash and the "aimed at you" frame round it too, which reach 5 and 3 px
+        -- further down: at 2 px they cut across the pips, seen live 2026-11-26 on a Chillwind Chimaera's Lightning)
+        if cb:IsShown() then cp:SetPoint("TOP", cb, "BOTTOM", 0, -8) else cp:SetPoint("TOP", hp, "BOTTOM", 0, -2) end
+    end
+    placeCombo()
+    cb:HookScript("OnShow", placeCombo)
+    cb:HookScript("OnHide", placeCombo)
+    cp.pips = {}
+    for i = 1, MAX_COMBO do
+        local bd = cp:CreateTexture(nil, "BACKGROUND")
+        bd:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
+        bd:SetVertexColor(0, 0, 0, 1)
+        local p = cp:CreateTexture(nil, "ARTWORK")
+        p:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
+        p.bd = bd
+        cp.pips[i] = p
+    end
+    cp:Hide()
+    f.combo = cp
+
     f.auras = {}
     for i = 1, MAX_AURAS do f.auras[i] = CreateAuraIcon(f) end
     return f
@@ -239,6 +267,7 @@ local function ApplyLayout(f)
     f.arrowR:ClearAllPoints()
     f.arrowR:SetPoint("LEFT", f.hp, "RIGHT", 3, 0)
     f.castIconW = h + ch + 2   -- PlaceLeftArrow steps out by this while a cast shows
+    f.comboSize = math.max(6, math.min(8, math.floor(h * 0.6)))   -- combo pips: small (UpdateCombo lays them out)
     f.PlaceLeftArrow(f)
     -- Friendly NPCs (quest givers, vendors, guards): the whole plate one plate-height
     -- lower, so its name sits below where the game floats a quest giver's ! and ? (the
@@ -675,9 +704,39 @@ local function UpdateAuras(f)
     for i = n + 1, MAX_AURAS do f.auras[i]:Hide() end
 end
 
+-- Your combo points on your target's plate: as many pips as you can hold (UnitPowerMax), the ones you have lit.
+-- GetComboPoints("player", "target") as Blizzard's own combo frame reads them; secret while the game restricts unit
+-- power (PvP): then no pips rather than a guess.
+local function UpdateCombo(f)
+    local cp = f.combo
+    local n = VP:Get("comboPoints") and IsTarget(f) and GetComboPoints and GetComboPoints("player", "target")
+    if sec(n) or type(n) ~= "number" or n <= 0 then cp:Hide(); return end
+    local mx = UnitPowerMax("player", COMBO_POWER)
+    if sec(mx) or type(mx) ~= "number" or mx <= 0 then mx = 5 end
+    mx = math.min(MAX_COMBO, math.max(mx, n))
+    local s, gap, c = f.comboSize or 7, 2, C.combo
+    for i, p in ipairs(cp.pips) do
+        if i <= mx then
+            p:ClearAllPoints()
+            p:SetPoint("LEFT", cp, "LEFT", (i - 1) * (s + gap), 0)
+            p:SetSize(s, s)
+            p.bd:ClearAllPoints()
+            p.bd:SetPoint("CENTER", p, "CENTER")
+            p.bd:SetSize(s + 2, s + 2)
+            if i <= n then p:SetVertexColor(c.r, c.g, c.b, 1) else p:SetVertexColor(0.16, 0.16, 0.2, 0.9) end
+            p:Show(); p.bd:Show()
+        else
+            p:Hide(); p.bd:Hide()
+        end
+    end
+    cp:SetSize(mx * s + (mx - 1) * gap, s)
+    cp:Show()
+end
+VP._test = { CreatePlate = function() return CreatePlate() end, UpdateCombo = UpdateCombo }   -- (tools/cmd/vplates-combo-test)
+
 local function FullUpdate(f)
     UpdateName(f); UpdateHealth(f); UpdateColor(f); UpdateSelection(f)
-    UpdateRaidMark(f); UpdateCast(f); UpdateAuras(f); UpdateClassification(f)
+    UpdateRaidMark(f); UpdateCast(f); UpdateAuras(f); UpdateClassification(f); UpdateCombo(f)
 end
 
 -- Friendly NPC: the game says it's friendly (UnitIsFriend, as Blizzard's plates
@@ -844,7 +903,7 @@ ev:SetScript("OnEvent", function(_, event, unit)
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
         OnRemoved(unit)
     elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
-        for _, f in pairs(plates) do UpdateSelection(f) end
+        for _, f in pairs(plates) do UpdateSelection(f); UpdateCombo(f) end
     elseif event == "RAID_TARGET_UPDATE" then
         for _, f in pairs(plates) do UpdateRaidMark(f) end
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" or event == "PLAYER_ROLES_ASSIGNED"
@@ -864,6 +923,14 @@ function VP:Init()
         ev:RegisterEvent(e)
     end
     for e in pairs(UNIT_HANDLERS) do ev:RegisterEvent(e) end
+    -- your combo points changed (UNIT_POWER_FREQUENT also fires for every energy tick: only COMBO_POINTS counts)
+    local cev = CreateFrame("Frame")
+    cev:SetScript("OnEvent", function(_, event, _, powerType)
+        if event == "UNIT_POWER_FREQUENT" and (sec(powerType) or powerType ~= "COMBO_POINTS") then return end
+        for _, f in pairs(plates) do UpdateCombo(f) end
+    end)
+    cev:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
+    cev:RegisterUnitEvent("UNIT_MAXPOWER", "player")
     -- Blizzard may hand a plate a fresh UnitFrame after our ADDED handler ran;
     -- re-hide whatever it attached.
     if NamePlateDriverFrame and NamePlateDriverFrame.OnNamePlateAdded then

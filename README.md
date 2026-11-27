@@ -25,6 +25,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 - **Color by mob type** — casters, mini-bosses and bosses stand out before the pull
 - **Threat colors** — orange when a tank loses a mob, or when a non-tank pulls one
 - **Raid markers** on the plate
+- **Combo points** — small round pips under your target's plate, lit for each point you have (rogues, and druids in cat form); they step below the cast bar while the mob casts
 
 ### Auras that matter
 - **Your debuffs** with timers and stacks
@@ -40,7 +41,7 @@ VoidPlates replaces the default enemy nameplates with flat, easy-to-read plates 
 ### Setup
 - **Profiles** — save, load and delete setups, or reset everything to defaults
 - **Plate size, cast bar height, name and aura size**, all adjustable
-- **Your own colors** — pick each plate color (hostile, neutral, friendly, tapped, caster, mini-boss, boss, threat, kickable and unkickable casts); each button shows the color it holds now, and one button puts them all back
+- **Your own colors** — pick each plate color (hostile, neutral, friendly, tapped, caster, mini-boss, boss, threat, kickable and unkickable casts, combo points); each button shows the color it holds now, and one button puts them all back
 - **Clickable area and stacking** — Blizzard's own settings, right there in the panel
 
 ---
